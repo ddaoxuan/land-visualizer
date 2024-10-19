@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useQueryState } from "nuqs";
+import { useMediaQuery } from "@/hooks/use-media-query"; // Add this import
 
 type Element = {
   id: number;
@@ -265,10 +266,16 @@ export function LandVisualizerComponent() {
     });
   };
 
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
   return (
-    <div className="flex h-screen">
+    <div className={`flex ${isMobile ? "flex-col" : "h-screen"}`}>
       {/* Sidebar */}
-      <div className="w-1/4 p-4 bg-gray-100 overflow-y-auto">
+      <div
+        className={`${
+          isMobile ? "w-full" : "w-1/4"
+        } p-4 bg-gray-100 overflow-y-auto`}
+      >
         <h2 className="text-xl font-semibold mb-2">Zapisane układy</h2>
         <Select
           onValueChange={loadLayout}
@@ -349,11 +356,15 @@ export function LandVisualizerComponent() {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 p-4 overflow-y-auto">
+      <div className={`${isMobile ? "w-full" : "flex-1"} p-4 overflow-y-auto`}>
         <div className="max-w-4xl mx-auto">
           <h1 className="text-2xl font-bold mb-4">Wizualizator działki</h1>
 
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div
+            className={`grid ${
+              isMobile ? "grid-cols-1" : "grid-cols-2"
+            } gap-4 mb-4`}
+          >
             <div>
               <Label htmlFor="landWidth">Szerokość działki (m)</Label>
               <Input
@@ -435,41 +446,51 @@ export function LandVisualizerComponent() {
           <div className="mb-4">
             <h2 className="text-xl font-semibold mb-2">Wizualizacja działki</h2>
             <div className="flex justify-center">
-              <div className="relative" style={{ padding: "30px 50px" }}>
+              <div
+                className="relative"
+                style={{ padding: isMobile ? "15px 25px" : "30px 50px" }}
+              >
                 <div
                   className="relative"
                   style={{
-                    width: state.landWidth * 5,
-                    height: state.landHeight * 5,
+                    width: state.landWidth * (isMobile ? 3 : 5),
+                    height: state.landHeight * (isMobile ? 3 : 5),
                   }}
                 >
                   <canvas
                     ref={canvasRef}
-                    width={state.landWidth * 5}
-                    height={state.landHeight * 5}
+                    width={state.landWidth * (isMobile ? 3 : 5)}
+                    height={state.landHeight * (isMobile ? 3 : 5)}
                     className="border border-gray-300"
                   />
                   {state.elements.map((element) => (
                     <Draggable
                       key={element.id}
                       bounds="parent"
-                      defaultPosition={{ x: element.x * 5, y: element.y * 5 }}
+                      defaultPosition={{
+                        x: element.x * (isMobile ? 3 : 5),
+                        y: element.y * (isMobile ? 3 : 5),
+                      }}
                       onStop={(e, data) =>
                         updateElementPosition(
                           element.id,
-                          data.x / 5,
-                          data.y / 5
+                          data.x / (isMobile ? 3 : 5),
+                          data.y / (isMobile ? 3 : 5)
                         )
                       }
                     >
                       <div
                         className="absolute bg-green-500 bg-opacity-50 cursor-move flex flex-col items-center justify-center"
                         style={{
-                          width: element.width * 5,
-                          height: element.height * 5,
+                          width: element.width * (isMobile ? 3 : 5),
+                          height: element.height * (isMobile ? 3 : 5),
                         }}
                       >
-                        <span className="text-xs font-semibold">
+                        <span
+                          className={`text-xs font-semibold ${
+                            isMobile ? "hidden" : ""
+                          }`}
+                        >
                           {element.name}
                         </span>
                         <span className="text-xs">

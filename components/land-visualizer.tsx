@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import Draggable from "react-draggable";
 import { Plus, Trash2, Save, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -62,10 +62,13 @@ export function LandVisualizerComponent() {
     serialize: (value) => encodeURIComponent(JSON.stringify(value)),
   });
 
-  const updateLocalStorage = (newState: AppState) => {
-    localStorage.setItem("landVisualizerState", JSON.stringify(newState));
-    setSharedState(newState);
-  };
+  const updateLocalStorage = useCallback(
+    (newState: AppState) => {
+      localStorage.setItem("landVisualizerState", JSON.stringify(newState));
+      setSharedState(newState);
+    },
+    [setSharedState]
+  );
 
   const addElement = () => {
     const newElement: Element = {
@@ -144,38 +147,41 @@ export function LandVisualizerComponent() {
     setNewLayoutName("");
   };
 
-  const loadLayout = (layoutId: string) => {
-    if (layoutId === "new") {
-      setState((prevState) => {
-        const newState = {
-          ...prevState,
-          landWidth: 100,
-          landHeight: 100,
-          elements: [],
-          currentLayoutId: null,
-          newElementWidth: 10,
-          newElementHeight: 10,
-        };
-        updateLocalStorage(newState);
-        return newState;
-      });
-    } else {
-      const layout = state.savedLayouts.find((l) => l.id === layoutId);
-      if (layout) {
+  const loadLayout = useCallback(
+    (layoutId: string) => {
+      if (layoutId === "new") {
         setState((prevState) => {
           const newState = {
             ...prevState,
-            landWidth: layout.landWidth,
-            landHeight: layout.landHeight,
-            elements: layout.elements,
-            currentLayoutId: layout.id,
+            landWidth: 100,
+            landHeight: 100,
+            elements: [],
+            currentLayoutId: null,
+            newElementWidth: 10,
+            newElementHeight: 10,
           };
           updateLocalStorage(newState);
           return newState;
         });
+      } else {
+        const layout = state.savedLayouts.find((l) => l.id === layoutId);
+        if (layout) {
+          setState((prevState) => {
+            const newState = {
+              ...prevState,
+              landWidth: layout.landWidth,
+              landHeight: layout.landHeight,
+              elements: layout.elements,
+              currentLayoutId: layout.id,
+            };
+            updateLocalStorage(newState);
+            return newState;
+          });
+        }
       }
-    }
-  };
+    },
+    [state.savedLayouts, updateLocalStorage]
+  );
 
   const deleteLayout = (layoutId: string | null) => {
     if (!layoutId) return;
@@ -208,7 +214,7 @@ export function LandVisualizerComponent() {
         }
       }
     }
-  }, []);
+  }, [sharedState, setSharedState, loadLayout]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
